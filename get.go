@@ -59,7 +59,13 @@ func get(contest, challenge string) error {
 		return err
 	}
 
-	f, err := os.OpenFile("main_test.go", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0640)
+	filePerms := os.O_TRUNC | os.O_RDWR | os.O_CREATE
+
+	if !*overwriteMain {
+		filePerms |= os.O_EXCL
+	}
+
+	f, err := fileErr(os.OpenFile("main_test.go", filePerms, 0640))
 	if err != nil {
 		return err
 	}
@@ -70,17 +76,8 @@ func get(contest, challenge string) error {
 		return err
 	}
 
-	mainPerms := os.O_TRUNC | os.O_RDWR | os.O_CREATE
-
-	if !*overwriteMain {
-		mainPerms |= os.O_EXCL
-	}
-
-	f2, err := os.OpenFile("main.go", mainPerms, 0640)
+	f2, err := fileErr(os.OpenFile("main.go", filePerms, 0640))
 	if err != nil {
-		if strings.Contains(err.Error(), "file exists") {
-			return fmt.Errorf("main.go already exists - force an overwrite with -m option")
-		}
 		return err
 	}
 	defer f2.Close()
@@ -90,4 +87,11 @@ func get(contest, challenge string) error {
 		return err
 	}
 	return nil
+}
+
+func fileErr(f *os.File, err error) (*os.File, error) {
+	if err != nil && strings.Contains(err.Error(), "file exists") {
+		err = fmt.Errorf("main.go already exists - force an overwrite with -m option")
+	}
+	return f, err
 }
