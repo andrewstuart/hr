@@ -1,0 +1,83 @@
+{
+  "model": {
+    "id": 25409036,
+    "contest_id": 1,
+    "challenge_id": 5595,
+    "hacker_id": 246431,
+    "language": "go",
+    "kind": "code",
+    "status": "Running Testcase #1",
+    "language_status": 0,
+    "score_processed": 0,
+    "score": "0.0",
+    "solved": 0,
+    "partial": 0,
+    "mu": "0.0",
+    "variance": "0.0",
+    "code": "package main\n\nimport (\n\t\"container/heap\"\n\t\"fmt\"\n\t\"io\"\n\t\"math\"\n\t\"os\"\n)\n\nconst (\n\tedgeLen  = 6\n\tinfinity = math.MaxInt32\n)\n\ntype node struct {\n\tid, dist int\n\tidx      int\n\tparent   *node\n\tedges    []*edge\n}\n\ntype edge struct {\n\tlen        int\n\thid, tid   int\n\thead, tail *node\n}\n\nfunc (e *edge) Next(curr *node) *node {\n\tif curr == e.head {\n\t\treturn e.tail\n\t}\n\treturn e.head\n}\n\nfunc getArr(r io.Reader) []tcase {\n\tvar n int\n\tfmt.Fscan(r, &n)\n\n\tss := make([]tcase, n)\n\n\tfor i := 0; i < n; i++ {\n\t\tt := tcase{nodes: map[int]*node{}, edges: []*edge{}}\n\n\t\tfmt.Fscan(r, &t.nNodes)\n\t\tfmt.Fscan(r, &t.nEdges)\n\n\t\tfor j := 0; j < t.nEdges; j++ {\n\t\t\te := edge{}\n\t\t\tfmt.Fscan(r, &e.hid, &e.tid, &e.len)\n\t\t\tt.edges = append(t.edges, &e)\n\t\t}\n\n\t\tfmt.Fscan(r, &t.startNode)\n\t\tt.init()\n\n\t\tss[i] = t\n\t}\n\n\treturn ss\n}\n\ntype vheap []*node\n\nfunc (v vheap) Len() int {\n\treturn len(v)\n}\n\nfunc (v vheap) Less(i int, j int) bool {\n\treturn v[i].dist < v[j].dist\n}\n\nfunc (v vheap) Swap(i int, j int) {\n\tv[i], v[j] = v[j], v[i]\n\tv[i].idx, v[j].idx = i, j\n}\n\nfunc (v *vheap) Push(x interface{}) {\n\tn := x.(*node)\n\tn.idx = len(*v)\n\t*v = append(*v, n)\n}\n\nfunc (v *vheap) Pop() interface{} {\n\tvp := *v\n\tr := vp[len(vp)-1]\n\t*v = vp[:len(vp)-1]\n\tr.idx = -1\n\treturn r\n}\n\nfunc dijk(g tcase, root *node) {\n\tfor _, n := range g.nodes {\n\t\tn.dist = infinity\n\t\tn.parent = nil\n\t}\n\troot.dist = 0\n\n\th := &vheap{}\n\tfor _, n := range g.nodes {\n\t\theap.Push(h, n)\n\t}\n\n\tfor h.Len() > 0 {\n\t\tcurr := heap.Pop(h).(*node)\n\t\tfor _, e := range curr.edges {\n\t\t\tnext := e.Next(curr)\n\n\t\t\talt := curr.dist + e.len\n\t\t\tif alt < next.dist {\n\t\t\t\tnext.parent = curr\n\t\t\t\tnext.dist = alt\n\n\t\t\t\theap.Fix(h, next.idx)\n\t\t\t}\n\t\t}\n\t}\n}\n\n// Graph (and testcase) ds\ntype tcase struct {\n\tnNodes, nEdges, startNode int\n\tedges                     []*edge\n\n\tnodes map[int]*node\n}\n\n// Graph ds initialization\nfunc (t *tcase) init() {\n\tfor i := 1; i <= t.nNodes; i++ {\n\t\tt.nodes[i] = &node{\n\t\t\tid:    i,\n\t\t\tedges: []*edge{},\n\t\t}\n\t}\n\n\tfor _, e := range t.edges {\n\t\te.head, e.tail = t.nodes[e.hid], t.nodes[e.tid]\n\t\te.head.edges = append(e.head.edges, e)\n\t\te.tail.edges = append(e.tail.edges, e)\n\t}\n}\n\nfunc cmain(r io.Reader, w io.Writer) {\n\tcases := getArr(r)\n\n\tfor _, testCase := range cases {\n\t\tst := testCase.nodes[testCase.startNode]\n\t\tdijk(testCase, st)\n\t\tfor i := 1; i <= testCase.nNodes; i++ {\n\t\t\tif i != testCase.startNode {\n\t\t\t\tv := testCase.nodes[i].dist\n\t\t\t\tif v == infinity {\n\t\t\t\t\tv = -1\n\t\t\t\t}\n\t\t\t\tfmt.Fprintf(w, \"%d \", v)\n\t\t\t}\n\t\t}\n\t\tfmt.Fprintln(w)\n\t}\n}\n\nfunc main() {\n\tcmain(os.Stdin, os.Stdout)\n}\n",
+    "compile_status": null,
+    "compile_message": null,
+    "testcase_status": [],
+    "testcase_message": [],
+    "stderr": null,
+    "codechecker_signal": [],
+    "codechecker_time": [],
+    "finishtime": null,
+    "created_at": "2016-08-10T01:46:01.000Z",
+    "updated_at": "2016-08-10T01:46:01.000Z",
+    "is_preliminary_score": null,
+    "test_weights": null,
+    "custom_challenge_config": null,
+    "downloadable_test_cases": true,
+    "status_code": 3,
+    "live_status": {
+      "live_message": "Running Testcase #1",
+      "progress": 5,
+      "progress_states": 11,
+      "testcase_status": [
+        1,
+        1
+      ],
+      "testcase_message": [
+        "Success",
+        "Success"
+      ],
+      "custom_score": null
+    },
+    "name": "Dijkstra: Shortest Reach 2",
+    "slug": "dijkstrashortreach",
+    "custom": false,
+    "is_custom": false,
+    "challenge_slug": "dijkstrashortreach",
+    "company": null,
+    "contest_slug": "master",
+    "created_at_epoch": "1470793561",
+    "player_count": 2,
+    "total_players": 8219,
+    "is_editorial_available": false,
+    "display_score": "0.0",
+    "free_test_cases": [],
+    "codechecker_hash": "a0f4cc9c66470cf216584de0d81f61b6",
+    "progress": 4,
+    "progress_states": 12,
+    "is_sample_testcase": [
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "is_additional_testcase": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "unlocked_challenges": ""
+  }
+}

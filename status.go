@@ -53,12 +53,7 @@ func (ss *SubmissionStatus) Update(cli *http.Client) error {
 	}
 
 	defer res.Body.Close()
-	var m struct{ Model SubmissionStatus }
+	m := struct{ Model *SubmissionStatus }{ss}
 
-	err = json.NewDecoder(res.Body).Decode(&m)
-	if err != nil {
-		return err
-	}
-	*ss = m.Model
-	return nil
+	return json.NewDecoder(res.Body).Decode(&m)
 }
