@@ -18,7 +18,6 @@ import (
 const (
 	loginURL   = "https://www.hackerrank.com/auth/login"
 	subRestFmt = "https://www.hackerrank.com/rest/contests/%s/challenges/%s/submissions"
-	subFmt     = "https://www.hackerrank.com/contests/%s/challenges/%s/submissions"
 	refFmt     = "https://www.hackerrank.com/challenges/%s"
 )
 
@@ -127,7 +126,7 @@ func submit(name string, code io.Reader) error {
 		return fmt.Errorf("Emtpy status returned")
 	}
 
-	for stat.Status != "Accepted" {
+	for len(stat.TestcaseStatus) == 0 {
 		time.Sleep(3300 * time.Millisecond)
 
 		err = stat.Update(cli)
@@ -138,7 +137,8 @@ func submit(name string, code io.Reader) error {
 
 	fmt.Printf("Test results as follows:\n\n%s\n", strings.Join(stat.TestcaseMessage, "\n"))
 
-	fmt.Printf("\n\nView results at: "+subFmt+"\n\n", *contest, name)
+	fmt.Printf("View results at: %s\n", stat.UserURL())
+	fmt.Printf("Next contest: %s -- %s\n", stat.NextChallengeSlug, stat.NextChallenge.Preview)
 
 	return nil
 }

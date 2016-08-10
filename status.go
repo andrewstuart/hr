@@ -15,14 +15,18 @@ type TestCase struct {
 
 type SubmissionStatus struct {
 	TestCase
-	ID             int    `json:"id"`
-	ChallengeID    int    `json:"challenge_id"`
-	ContestSlug    string `json:"contest_slug"`
-	TestcaseStatus []int  `json:"testcase_status"`
-	Solved         int    `json:"solved"`
-	NextChallenge  struct {
+	ID                int    `json:"id"`
+	Slug              string `json:"slug"`
+	Name              string `json:"name"`
+	ChallengeID       int    `json:"challenge_id"`
+	ContestSlug       string `json:"contest_slug"`
+	TestcaseStatus    []int  `json:"testcase_status"`
+	Solved            int    `json:"solved"`
+	NextChallengeSlug string `json:"next_challenge_slug"`
+	NextChallenge     struct {
 		Difficulty  string `json:"difficulty_name"`
 		URL         string `json:"url"`
+		Slug        string `json:"slug"`
 		Name        string `json:"name"`
 		Preview     string `json:"preview"`
 		SolvedCount int    `json:"solved_count"`
@@ -33,6 +37,17 @@ type SubmissionStatus struct {
 	} `json:"live_status"`
 	Score  string
 	Status string `json:"status"`
+}
+
+const viewStatFmt = "https://www.hackerrank.com/%schallenges/%s/submissions"
+
+// UserURL returns the url for the user to view the results in the browser
+func (ss *SubmissionStatus) UserURL() string {
+	var contestFragment string
+	if ss.ContestSlug != "master" {
+		contestFragment = fmt.Sprintf("contests/%s/", ss.ContestSlug)
+	}
+	return fmt.Sprintf(viewStatFmt, contestFragment, ss.Slug)
 }
 
 const subStatURL = "https://www.hackerrank.com/rest/contests/%s/submissions/%d?_=%d"

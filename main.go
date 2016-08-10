@@ -6,10 +6,6 @@ import (
 	"os"
 )
 
-type hr struct {
-	BodyHTML string `json:"body_html"`
-}
-
 var (
 	contest       = flag.String("contest", "master", "the contest containing the challenge")
 	debug         = flag.Bool("debug", false, "debug the chatter")
