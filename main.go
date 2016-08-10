@@ -12,8 +12,9 @@ type hr struct {
 }
 
 var (
-	contest = flag.String("contest", "master", "the contest containing the challenge")
-	debug   = flag.Bool("debug", false, "debug the chatter")
+	contest       = flag.String("contest", "master", "the contest containing the challenge")
+	debug         = flag.Bool("debug", false, "debug the chatter")
+	overwriteMain = flag.Bool("-m", false, "allow overwriting main")
 )
 
 func main() {

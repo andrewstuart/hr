@@ -72,7 +72,13 @@ func get(contest, challenge string) error {
 		return err
 	}
 
-	f2, err := os.OpenFile("main.go", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0640)
+	mainPerms := os.O_TRUNC | os.O_RDWR | os.O_CREATE
+
+	if !*overwriteMain {
+		mainPerms |= os.O_EXCL
+	}
+
+	f2, err := os.OpenFile("main.go", mainPerms, 0640)
 	if err != nil {
 		return err
 	}
