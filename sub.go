@@ -8,16 +8,16 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/puerkitobio/goquery"
 )
 
 const (
 	loginURL   = "https://www.hackerrank.com/auth/login"
-	subRestFmt = "https://www.hackerrank.com/rest/contests/%s/challenges/%s/submissions?"
+	subRestFmt = "https://www.hackerrank.com/rest/contests/%s/challenges/%s/submissions"
 	subFmt     = "https://www.hackerrank.com/contests/%s/challenges/%s/submissions"
 	refFmt     = "https://www.hackerrank.com/challenges/%s"
 )
@@ -26,77 +26,6 @@ type submission struct {
 	ContestSlug string `json:"contest_slug"`
 	Code        string `json:"code"`
 	Language    string `json:"language"`
-}
-
-type session struct {
-	cookies map[string]string
-	rtrip   *csrfTransport
-}
-
-func (c *session) SetCookies(u *url.URL, cookies []*http.Cookie) {
-	if c.cookies == nil {
-		c.cookies = map[string]string{}
-	}
-	for _, ck := range cookies {
-		c.cookies[ck.Name] = ck.Value
-	}
-
-	f, err := os.OpenFile("/home/andrew/.local/hr.json", os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0640)
-	if err != nil {
-		return
-	}
-
-	json.NewEncoder(f).Encode(*c)
-	f.Close()
-}
-
-func (c *session) Cookies(u *url.URL) []*http.Cookie {
-	if len(c.cookies) == 0 {
-		f, err := os.OpenFile("~/.local/hr.json", os.O_RDONLY, 0640)
-		if err == nil {
-			json.NewDecoder(f).Decode(&c)
-			f.Close()
-		}
-	}
-
-	cookies := []*http.Cookie{}
-	for k, v := range c.cookies {
-		cookies = append(cookies, &http.Cookie{Name: k, Value: v})
-	}
-	return cookies
-}
-
-func (c *session) login() error {
-	cli := http.Client{Transport: c.rtrip, Jar: c}
-	res, err := cli.Get("https://www.hackerrank.com/login")
-	if err != nil {
-		return err
-	}
-
-	csrf, err := getBodyCSRF(res.Body)
-	if err != nil {
-		return err
-	}
-	c.rtrip.CSRF = csrf
-
-	v := url.Values{
-		"login":       []string{os.Getenv("HR_USER")},
-		"password":    []string{os.Getenv("HR_PASS")},
-		"fallback":    []string{"true"},
-		"remember_me": []string{"false"},
-	}
-
-	req, err := http.NewRequest("POST", loginURL, strings.NewReader(v.Encode()))
-	if err != nil {
-		return err
-	}
-
-	res, err = cli.Do(req)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // type rtf func(*http.Request) (*http.Response, error)
@@ -114,18 +43,20 @@ func (r *csrfTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		req.Header.Set("X-CSRF-Token", r.CSRF)
 	}
 
-	fmt.Println("Req headers")
-	req.Header.Write(os.Stdout)
-	fmt.Println()
-
 	res, err := http.DefaultTransport.RoundTrip(req)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println("Res headers")
-	res.Header.Write(os.Stdout)
-	fmt.Println()
+	if *debug {
+		fmt.Println("Req headers")
+		req.Header.Write(os.Stdout)
+		fmt.Println()
+
+		fmt.Println("Res headers")
+		res.Header.Write(os.Stdout)
+		fmt.Println()
+	}
 
 	return res, err
 }
@@ -150,7 +81,7 @@ func submit(name string, code io.Reader) error {
 	}
 
 	jar := &session{
-		rtrip: &csrfTransport{Referrer: fmt.Sprintf(refFmt, name)},
+		RTer: &csrfTransport{Referrer: fmt.Sprintf(refFmt, name)},
 	}
 	if len(jar.Cookies(nil)) == 0 {
 		err := jar.login()
@@ -159,7 +90,7 @@ func submit(name string, code io.Reader) error {
 		}
 	}
 
-	cli := &http.Client{Jar: jar, Transport: jar.rtrip}
+	cli := &http.Client{Jar: jar, Transport: jar.RTer}
 
 	bs, err := ioutil.ReadAll(code)
 	if err != nil {
@@ -182,29 +113,32 @@ func submit(name string, code io.Reader) error {
 		return err
 	}
 
-	log.Println(res.Status)
-	io.Copy(os.Stdout, res.Body)
+	defer res.Body.Close()
 
-	fmt.Println()
-	fmt.Printf("View results at: "+subFmt+"\n", *contest, name)
+	m := struct{ Model SubmissionStatus }{}
+	err = json.NewDecoder(res.Body).Decode(&m)
+	if err != nil {
+		return err
+	}
+
+	stat := &m.Model
+
+	if stat.Status == "" {
+		return fmt.Errorf("Emtpy status returned")
+	}
+
+	fmt.Printf("\n\nView results at: "+subFmt+"\n\n", *contest, name)
+
+	for stat.Status != "Accepted" {
+		time.Sleep(10 * time.Second)
+
+		err = stat.Update(cli)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	fmt.Printf("Test results as follows:\n\n%s\n", strings.Join(stat.TestcaseMessage, "\n"))
 
 	return nil
-}
-
-func getToken(body io.ReadCloser) (string, error) {
-	var res struct {
-		CSRFToken string `json:"csrf_token"`
-		Status    bool
-		Messages  []string
-	}
-	err := json.NewDecoder(body).Decode(&res)
-	if err != nil {
-		return "", err
-	}
-
-	if !res.Status {
-		return "", fmt.Errorf("Error authenticating: %s", res.Messages)
-	}
-
-	return res.CSRFToken, body.Close()
 }

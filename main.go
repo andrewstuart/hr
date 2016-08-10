@@ -19,6 +19,7 @@ type hr struct {
 
 var (
 	contest = flag.String("contest", "master", "the contest containing the challenge")
+	debug   = flag.Bool("debug", false, "debug the chatter")
 )
 
 func main() {
