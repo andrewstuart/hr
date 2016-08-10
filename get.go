@@ -89,7 +89,7 @@ func get(contest, challenge string) error {
 	}
 	defer fchal.Close()
 
-	doc := template.Must(template.New("contest").Parse(`<html><head></head><body><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"><div class="container"><header class="jumbotron"><h1>{{ .Name }}<a href="{{ .Link }}"><span class="glyphicon glyphicon-link"></span></a></h1><h2>{{ .Preview }}</h2></header>{{ .BodyHTML }}<div class="container"></body></html>`))
+	doc := template.Must(template.New("contest").Parse(`<html><head></head><body><link target="_blank" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"><div class="container"><header class="jumbotron"><h1>{{ .Name }}<a href="{{ .Link }}"><span class="glyphicon glyphicon-link"></span></a></h1><h2>{{ .Preview }}</h2></header>{{ .BodyHTML }}<div class="container"></body></html>`))
 
 	contestFrag := ""
 	if h.Model.ContestSlug != "master" && h.Model.ContestSlug != "" {
