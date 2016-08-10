@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/puerkitobio/goquery"
+	"github.com/PuerkitoBio/goquery"
 )
 
 const (
@@ -127,10 +127,8 @@ func submit(name string, code io.Reader) error {
 		return fmt.Errorf("Emtpy status returned")
 	}
 
-	fmt.Printf("\n\nView results at: "+subFmt+"\n\n", *contest, name)
-
 	for stat.Status != "Accepted" {
-		time.Sleep(10 * time.Second)
+		time.Sleep(3300 * time.Millisecond)
 
 		err = stat.Update(cli)
 		if err != nil {
@@ -139,6 +137,8 @@ func submit(name string, code io.Reader) error {
 	}
 
 	fmt.Printf("Test results as follows:\n\n%s\n", strings.Join(stat.TestcaseMessage, "\n"))
+
+	fmt.Printf("\n\nView results at: "+subFmt+"\n\n", *contest, name)
 
 	return nil
 }

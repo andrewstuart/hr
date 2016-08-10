@@ -1,6 +1,6 @@
 package main
 
-var (
+const (
 	testTmpl = `package main
 
 import (
@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-` + "var tests = [][]string{{`{% .in %}`, `{% .out %}`}}" + `
+` + "var tests = [][]string{{% range $i, $ex :=  .examples %}{`{% $ex.In %}`, `{% $ex.Out %}`},{% end %}}" + `
 
 func TestMain(t *testing.T) {
 	for _, test := range tests {
