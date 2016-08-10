@@ -19,8 +19,6 @@ type example struct {
 func get(contest, challenge string) error {
 	url := fmt.Sprintf("https://www.hackerrank.com/rest/contests/%s/challenges/%s", contest, challenge)
 
-	log.Println(url)
-
 	res, err := http.Get(url)
 	if err != nil {
 		return err
@@ -80,6 +78,9 @@ func get(contest, challenge string) error {
 
 	f2, err := os.OpenFile("main.go", mainPerms, 0640)
 	if err != nil {
+		if strings.Contains(err.Error(), "file exists") {
+			return fmt.Errorf("main.go already exists - force an overwrite with -m option")
+		}
 		return err
 	}
 	defer f2.Close()

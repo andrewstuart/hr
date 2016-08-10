@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -21,32 +20,35 @@ func main() {
 	flag.Parse()
 
 	if len(flag.Args()) < 1 {
-		fmt.Println("Missing challenge name (as first argument)")
+		fmt.Fprintln(os.Stderr, "Missing challenge name (as first argument)")
 		os.Exit(1)
 	}
 
 	if flag.Args()[0] == "submit" {
 		if len(flag.Args()) < 2 {
-			fmt.Println("Missing challenge name (as first argument)")
+			fmt.Fprintln(os.Stderr, "Missing challenge name (as first argument)")
 			os.Exit(1)
 		}
 
 		f, err := os.OpenFile("./main.go", os.O_RDONLY, 0640)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
 		}
 		defer f.Close()
 
 		err = submit(flag.Args()[1], f)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
 		}
 		return
 	}
 
 	err := get(*contest, flag.Args()[0])
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 
 }
