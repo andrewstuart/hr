@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 )
@@ -40,7 +39,6 @@ const subStatURL = "https://www.hackerrank.com/rest/contests/%s/submissions/%d?_
 
 func (ss *SubmissionStatus) Update(cli *http.Client) error {
 	url := fmt.Sprintf(subStatURL, ss.ContestSlug, ss.ID, time.Now().UnixNano()/1000000)
-	log.Println(url)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
