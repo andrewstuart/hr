@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"os"
+	"path/filepath"
 )
 
 var (
@@ -16,13 +18,26 @@ var (
 func main() {
 	flag.Parse()
 
+	challengeSlug := ""
 	if len(flag.Args()) < 1 {
 		fmt.Fprintln(os.Stderr, "Missing challenge name (as first argument)")
 		os.Exit(1)
 	}
+	challengeSlug = flag.Args()[0]
 
-	if flag.Args()[0] == "submit" {
-		challengeSlug := ""
+	if challengeSlug == "." {
+		p, err := filepath.Abs(".")
+
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Could not resolve current directory name")
+			os.Exit(1)
+		}
+
+		challengeSlug = filepath.Base(p)
+	}
+	log.Println(challengeSlug)
+
+	if challengeSlug == "submit" {
 		if len(flag.Args()) < 2 {
 			cache, err := os.OpenFile(cacheFileName, os.O_RDONLY, 0400)
 			if err != nil {
@@ -56,7 +71,7 @@ func main() {
 		return
 	}
 
-	err := get(*contest, flag.Args()[0])
+	err := get(*contest, challengeSlug)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
