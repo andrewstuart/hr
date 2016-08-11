@@ -39,7 +39,7 @@ func (c *session) SetCookies(u *url.URL, cookies []*http.Cookie) {
 		c.CStore[ck.Name] = ck.Value
 	}
 
-	f, err := os.OpenFile(hrCachePath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0640)
+	f, err := os.OpenFile(hrCachePath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0600)
 	if err != nil {
 		return
 	}
@@ -50,7 +50,7 @@ func (c *session) SetCookies(u *url.URL, cookies []*http.Cookie) {
 
 func (c *session) Cookies(u *url.URL) []*http.Cookie {
 	if c.CStore == nil || len(c.CStore) == 0 {
-		f, err := os.OpenFile(hrCachePath, os.O_RDONLY, 0640)
+		f, err := os.OpenFile(hrCachePath, os.O_RDONLY, 0600)
 		if err != nil {
 			log.Println(err)
 		}
