@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 )
@@ -35,7 +34,6 @@ func main() {
 
 		challengeSlug = filepath.Base(p)
 	}
-	log.Println(challengeSlug)
 
 	if challengeSlug == "submit" {
 		if len(flag.Args()) < 2 {

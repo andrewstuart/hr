@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -133,12 +132,25 @@ func submit(name string, code io.Reader) error {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		fmt.Printf("\rCurrent status: %s\t", stat.Status)
+		for _, status := range stat.LiveStatus.TestcaseMessage {
+			switch status {
+			case "Success":
+				fmt.Print("\u2713")
+			default:
+				fmt.Print("\u2717")
+			}
+		}
 	}
 
-	fmt.Printf("Test results as follows:\n\n%s\n", strings.Join(stat.TestcaseMessage, "\n"))
+	fmt.Printf("\rTest results as follows: %s\n", stat.Status)
+	for i, s := range stat.TestcaseMessage {
+		fmt.Printf("Test Case %d:\t%s\n", i, s)
+	}
 
-	fmt.Printf("View results at: %s\n", stat.UserURL())
-	fmt.Printf("Next contest: %s -- %s\n", stat.NextChallengeSlug, stat.NextChallenge.Preview)
+	fmt.Printf("\nView results at:\t%s\n", stat.UserURL())
+	fmt.Printf("Next contest:\t%s -- %s\n", stat.NextChallengeSlug, stat.NextChallenge.Preview)
 
 	return nil
 }

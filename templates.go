@@ -16,8 +16,9 @@ func TestMain(t *testing.T) {
 		b := &bytes.Buffer{}
 		cmain(strings.NewReader(test[0]), b)
 
-		if strings.TrimSpace(test[1]) != strings.TrimSpace(string(b.Bytes())) {
-			t.Errorf("Test case %d failed.\nExpected: %s\nGot:%s", i+1,strings.TrimSpace(test[1]), strings.TrimSpace(string(b.Bytes())))
+		expect, got := strings.TrimSpace(test[1]), strings.TrimSpace(string(b.Bytes()))
+		if expect != got {
+			t.Errorf("Test case %d failed.\nExpected:\t%s\nGot:\t\t\t%s", i+1, expect, got)
 		}
 	}
 }`
