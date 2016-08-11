@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -21,9 +22,23 @@ func main() {
 	}
 
 	if flag.Args()[0] == "submit" {
+		challengeSlug := ""
 		if len(flag.Args()) < 2 {
-			fmt.Fprintln(os.Stderr, "Missing challenge name (as first argument)")
-			os.Exit(1)
+			cache, err := os.OpenFile(cacheFileName, os.O_RDONLY, 0400)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Missing challenge name (as first argument)")
+				os.Exit(1)
+			}
+			defer cache.Close()
+
+			var chal struct{ Model Challenge }
+			err = json.NewDecoder(cache).Decode(&chal)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Missing challenge name and could not decode cache file: %s\n", err)
+			}
+			challengeSlug = chal.Model.Slug
+		} else {
+			challengeSlug = flag.Args()[1]
 		}
 
 		f, err := os.OpenFile("./main.go", os.O_RDONLY, 0640)
@@ -33,7 +48,7 @@ func main() {
 		}
 		defer f.Close()
 
-		err = submit(flag.Args()[1], f)
+		err = submit(challengeSlug, f)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)

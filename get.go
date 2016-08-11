@@ -28,6 +28,8 @@ type Challenge struct {
 	Preview     string        `json:"preview"`
 }
 
+const cacheFileName = ".challenge.json"
+
 func get(contest, challenge string) error {
 	url := fmt.Sprintf("https://www.hackerrank.com/rest/contests/%s/challenges/%s", contest, challenge)
 
@@ -40,7 +42,7 @@ func get(contest, challenge string) error {
 
 	var h struct{ Model Challenge }
 
-	cachef, err := os.OpenFile(".response.json", os.O_RDWR|os.O_TRUNC|os.O_CREATE, 0640)
+	cachef, err := os.OpenFile(cacheFileName, os.O_RDWR|os.O_TRUNC|os.O_CREATE, 0640)
 	if err != nil {
 		return err
 	}
@@ -106,14 +108,13 @@ func get(contest, challenge string) error {
 	}()
 
 	f, err := fileErr(os.OpenFile("main_test.go", filePerms, 0640))
-	if err != nil {
-		return err
-	}
-	defer f.Close()
+	if err == nil {
+		defer f.Close()
 
-	err = tmpl.Execute(f, map[string]interface{}{"examples": examples})
-	if err != nil {
-		return err
+		err = tmpl.Execute(f, map[string]interface{}{"examples": examples})
+		if err != nil {
+			return err
+		}
 	}
 
 	f2, err := fileErr(os.OpenFile("main.go", filePerms, 0640))
@@ -131,7 +132,7 @@ func get(contest, challenge string) error {
 
 func fileErr(f *os.File, err error) (*os.File, error) {
 	if err != nil && strings.Contains(err.Error(), "file exists") {
-		err = fmt.Errorf("main.go already exists - force an overwrite with -m option")
+		err = fmt.Errorf("main.go already exists - force an overwrite with -f option")
 	}
 	return f, err
 }
