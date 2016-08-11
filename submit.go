@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/fatih/color"
 )
 
 const (
@@ -137,9 +138,13 @@ func submit(name string, code io.Reader) error {
 		for _, status := range stat.LiveStatus.TestcaseMessage {
 			switch status {
 			case "Success":
-				fmt.Print("\u2713")
+				color.New(color.FgGreen).Print("\u2713")
+			case "Terminated due to timeout":
+				color.New(color.FgYellow).Print("\u25F7")
+			case "Wrong Answer":
+				color.New(color.FgRed).Print("\u2717")
 			default:
-				fmt.Print("\u2717")
+				fmt.Print("?")
 			}
 		}
 	}
