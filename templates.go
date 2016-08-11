@@ -7,18 +7,18 @@ import (
 	"bytes"
 	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/require"
 )
 
 ` + "var tests = [][]string{{% range $i, $ex :=  .examples %}{`{% $ex.In %}`, `{% $ex.Out %}`},{% end %}}" + `
 
 func TestMain(t *testing.T) {
-	for _, test := range tests {
+	for i, test := range tests {
 		b := &bytes.Buffer{}
 		cmain(strings.NewReader(test[0]), b)
 
-		require.Equal(t, strings.TrimSpace(test[1]), strings.TrimSpace(string(b.Bytes())))
+		if strings.TrimSpace(test[1]) != strings.TrimSpace(string(b.Bytes())) {
+			t.Errorf("Test case %d failed.\nExpected: %s\nGot:%s", i+1,strings.TrimSpace(test[1]), strings.TrimSpace(string(b.Bytes())))
+		}
 	}
 }`
 
