@@ -11,7 +11,8 @@ import (
 var (
 	contest       = flag.String("contest", "master", "the contest containing the challenge")
 	debug         = flag.Bool("debug", false, "debug the chatter")
-	overwriteMain = flag.Bool("-m", false, "allow overwriting main")
+	overwriteMain = flag.Bool("m", false, "allow overwriting main")
+	language      = flag.String("l", "golang", "perform a challenge in a specific language")
 )
 
 func main() {

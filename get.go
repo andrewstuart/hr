@@ -28,6 +28,10 @@ type Challenge struct {
 	Preview     string        `json:"preview"`
 }
 
+type meta struct {
+	Language string `json:"language"`
+}
+
 const cacheFileName = ".challenge.json"
 
 func get(contest, challenge string) error {

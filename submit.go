@@ -114,8 +114,14 @@ func submit(name string, code io.Reader) error {
 
 	defer res.Body.Close()
 
+	var r io.Reader = res.Body
+
+	if *debug {
+		r = io.TeeReader(r, os.Stdout)
+	}
+
 	m := struct{ Model SubmissionStatus }{}
-	err = json.NewDecoder(res.Body).Decode(&m)
+	err = json.NewDecoder(r).Decode(&m)
 	if err != nil {
 		return err
 	}
