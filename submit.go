@@ -47,7 +47,7 @@ func (r *csrfTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 
-	if *debug {
+	if debug {
 		fmt.Println("Req headers")
 		req.Header.Write(os.Stdout)
 		fmt.Println()
@@ -96,12 +96,12 @@ func submit(name string, code io.Reader) error {
 		return err
 	}
 
-	jsbs, err := json.Marshal(submission{ContestSlug: *contest, Language: "go", Code: string(bs)})
+	jsbs, err := json.Marshal(submission{ContestSlug: contest, Language: "go", Code: string(bs)})
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf(subRestFmt, *contest, name), bytes.NewReader(jsbs))
+	req, err := http.NewRequest("POST", fmt.Sprintf(subRestFmt, contest, name), bytes.NewReader(jsbs))
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func submit(name string, code io.Reader) error {
 
 	var r io.Reader = res.Body
 
-	if *debug {
+	if debug {
 		r = io.TeeReader(r, os.Stdout)
 	}
 

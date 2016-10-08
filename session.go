@@ -19,7 +19,10 @@ type session struct {
 
 const hrDir = ".local/hr.json"
 
-var home, hrCachePath string
+var (
+	home, hrCachePath string
+	cli               http.Client
+)
 
 func init() {
 	var err error
@@ -48,6 +51,7 @@ func (c *session) SetCookies(u *url.URL, cookies []*http.Cookie) {
 	f.Close()
 }
 
+//Cookies implements cookie store
 func (c *session) Cookies(u *url.URL) []*http.Cookie {
 	if c.CStore == nil || len(c.CStore) == 0 {
 		f, err := os.OpenFile(hrCachePath, os.O_RDONLY, 0600)

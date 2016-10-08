@@ -34,8 +34,12 @@ type meta struct {
 
 const cacheFileName = ".challenge.json"
 
-func get(contest, challenge string) error {
+func get(challenge string) error {
 	url := fmt.Sprintf("https://www.hackerrank.com/rest/contests/%s/challenges/%s", contest, challenge)
+
+	if debug {
+		log.Println("Url: ", url)
+	}
 
 	res, err := http.Get(url)
 	if err != nil {
@@ -50,12 +54,14 @@ func get(contest, challenge string) error {
 	if err != nil {
 		return err
 	}
-	defer cachef.Close()
 
 	err = json.NewDecoder(io.TeeReader(res.Body, cachef)).Decode(&h)
 	if err != nil {
-		log.Println(res.Status, res.Status)
+		log.Println(res.Status, res.Status, err)
 		return err
+	}
+	if err := cachef.Close(); err != nil {
+		log.Println("Error closing cache file: ", err)
 	}
 
 	d, err := goquery.NewDocumentFromReader(strings.NewReader(string(h.Model.BodyHTML)))
@@ -85,7 +91,7 @@ func get(contest, challenge string) error {
 
 	filePerms := os.O_TRUNC | os.O_RDWR | os.O_CREATE
 
-	if !*overwriteMain {
+	if !overwriteMain {
 		filePerms |= os.O_EXCL
 	}
 

@@ -1,79 +1,71 @@
 package main
 
 import (
-	"encoding/json"
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/spf13/cobra"
 )
 
 var (
-	contest       = flag.String("contest", "master", "the contest containing the challenge")
-	debug         = flag.Bool("debug", false, "debug the chatter")
-	overwriteMain = flag.Bool("m", false, "allow overwriting main")
-	language      = flag.String("l", "golang", "perform a challenge in a specific language")
+	contest, language    string
+	debug, overwriteMain bool
 )
 
 func main() {
-	flag.Parse()
-
-	challengeSlug := ""
-	if len(flag.Args()) < 1 {
-		fmt.Fprintln(os.Stderr, "Missing challenge name (as first argument)")
-		os.Exit(1)
+	rootCmd := &cobra.Command{
+		Use:   os.Args[0],
+		Short: os.Args[0] + " is a hackerrank local helper",
 	}
-	challengeSlug = flag.Args()[0]
+
+	rootCmd.PersistentFlags().StringVarP(&contest, "contest", "c", "master", "the contest containing the challenge")
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "debug the chatter")
+	rootCmd.PersistentFlags().BoolVarP(&overwriteMain, "force", "f", false, "allow overwriting main")
+	rootCmd.PersistentFlags().StringVarP(&language, "language", "l", "golang", "perform a challenge in a specific language")
+
+	rootCmd.AddCommand(cmdSubmit, getCommand)
+
+	rootCmd.Execute()
+
+}
+
+var getCommand = &cobra.Command{
+	Use:   "get [challenge-slug]",
+	Short: "download the challenge",
+	Run:   runGetCommand,
+}
+
+func runGetCommand(cmd *cobra.Command, args []string) {
+	challengeSlug := ""
+	if len(args) > 0 {
+		challengeSlug = args[0]
+	} else {
+		var err error
+		challengeSlug, err = getChallengeNameFromCache()
+		if err != nil {
+			challengeSlug = dirName()
+		}
+	}
 
 	if challengeSlug == "." {
-		p, err := filepath.Abs(".")
-
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Could not resolve current directory name")
-			os.Exit(1)
-		}
-
-		challengeSlug = filepath.Base(p)
+		challengeSlug = dirName()
 	}
 
-	if challengeSlug == "submit" {
-		if len(flag.Args()) < 2 {
-			cache, err := os.OpenFile(cacheFileName, os.O_RDONLY, 0400)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "Missing challenge name (as first argument)")
-				os.Exit(1)
-			}
-			defer cache.Close()
-
-			var chal struct{ Model Challenge }
-			err = json.NewDecoder(cache).Decode(&chal)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Missing challenge name and could not decode cache file: %s\n", err)
-			}
-			challengeSlug = chal.Model.Slug
-		} else {
-			challengeSlug = flag.Args()[1]
-		}
-
-		f, err := os.OpenFile("./main.go", os.O_RDONLY, 0640)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
-		defer f.Close()
-
-		err = submit(challengeSlug, f)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
-		return
-	}
-
-	err := get(*contest, challengeSlug)
+	err := get(challengeSlug)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
 
+func dirName() string {
+	p, err := filepath.Abs(".")
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Could not resolve current directory name")
+		os.Exit(1)
+	}
+
+	return filepath.Base(p)
 }
