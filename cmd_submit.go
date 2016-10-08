@@ -62,5 +62,5 @@ func getChallengeNameFromCache() (string, error) {
 		return "", err
 	}
 
-	return chal.Model.Name, nil
+	return chal.Model.Slug, nil
 }

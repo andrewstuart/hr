@@ -48,12 +48,16 @@ func (r *csrfTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	if debug {
-		fmt.Println("Req headers")
+		fmt.Println("Req")
+		req.Write(os.Stdout)
+		fmt.Println(req.URL.String())
 		req.Header.Write(os.Stdout)
+		// fmt.Println("Req headers")
+		// req.Header.Write(os.Stdout)
 		fmt.Println()
 
-		fmt.Println("Res headers")
-		res.Header.Write(os.Stdout)
+		fmt.Println("Res")
+		res.Write(os.Stdout)
 		fmt.Println()
 	}
 
