@@ -11,7 +11,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/fatih/color"
 )
 
@@ -19,63 +18,14 @@ const (
 	loginURL   = "https://www.hackerrank.com/auth/login"
 	subRestFmt = "https://www.hackerrank.com/rest/contests/%s/challenges/%s/submissions"
 	refFmt     = "https://www.hackerrank.com/challenges/%s"
+
+	statusFileName = ".submission-status.json"
 )
 
 type submission struct {
 	ContestSlug string `json:"contest_slug"`
 	Code        string `json:"code"`
 	Language    string `json:"language"`
-}
-
-// type rtf func(*http.Request) (*http.Response, error)
-type csrfTransport struct {
-	Referrer string
-	CSRF     string
-}
-
-func (r *csrfTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.85 Safari/537.36")
-	req.Header.Set("Origin", "https://www.hackerrank.com")
-	req.Header.Set("Referrer", r.Referrer)
-
-	if r.CSRF != "" {
-		req.Header.Set("X-CSRF-Token", r.CSRF)
-	}
-
-	res, err := http.DefaultTransport.RoundTrip(req)
-	if err != nil {
-		return nil, err
-	}
-
-	if debug {
-		fmt.Println("Req")
-		req.Write(os.Stdout)
-		fmt.Println(req.URL.String())
-		req.Header.Write(os.Stdout)
-		// fmt.Println("Req headers")
-		// req.Header.Write(os.Stdout)
-		fmt.Println()
-
-		fmt.Println("Res")
-		res.Write(os.Stdout)
-		fmt.Println()
-	}
-
-	return res, err
-}
-
-func getBodyCSRF(r io.ReadCloser) (string, error) {
-	defer r.Close()
-	doc, err := goquery.NewDocumentFromReader(r)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	csrf, ok := doc.Find(`meta[name="csrf-token"]`).First().Attr("content")
-	if !ok {
-		return "", fmt.Errorf("No csrf meta")
-	}
-	return csrf, nil
 }
 
 func submit(name string, code io.Reader) error {
@@ -144,7 +94,7 @@ func submit(name string, code io.Reader) error {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("\rCurrent status: %s\t", stat.Status)
+		fmt.Printf("\rCurrent status: %s\t\t", stat.Status)
 		for _, status := range stat.LiveStatus.TestcaseMessage {
 			switch status {
 			case "Success":
@@ -167,5 +117,12 @@ func submit(name string, code io.Reader) error {
 	fmt.Printf("\nView results at:\t%s\n", stat.UserURL())
 	fmt.Printf("Next contest:\t%s -- %s\n", stat.NextChallengeSlug, stat.NextChallenge.Preview)
 
-	return nil
+	f, err := os.OpenFile(statusFileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
+	}
+
+	json.NewEncoder(f).Encode(stat)
+
+	return f.Close()
 }

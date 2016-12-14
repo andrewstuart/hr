@@ -24,7 +24,7 @@ func main() {
 	rootCmd.PersistentFlags().BoolVarP(&overwriteMain, "force", "f", false, "allow overwriting main")
 	rootCmd.PersistentFlags().StringVarP(&language, "language", "l", "golang", "perform a challenge in a specific language")
 
-	rootCmd.AddCommand(cmdSubmit, getCommand)
+	rootCmd.AddCommand(cmdSubmit, getCommand, cmdNext)
 
 	rootCmd.Execute()
 
