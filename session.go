@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
+	prompt "github.com/segmentio/go-prompt"
 )
 
 type session struct {
@@ -94,6 +95,13 @@ func (c *session) login() error {
 		"password":    []string{os.Getenv("HR_PASS")},
 		"fallback":    []string{"true"},
 		"remember_me": []string{"false"},
+	}
+	if v.Get("login") == "" {
+		v.Set("login", prompt.String("Enter your HackerRank username"))
+	}
+
+	if v.Get("password") == "" {
+		v.Set("password", prompt.Password("Please enter your HackerRank password"))
 	}
 
 	req, err := http.NewRequest("POST", loginURL, strings.NewReader(v.Encode()))
