@@ -114,7 +114,11 @@ func get(challenge string) error {
 		return err
 	}
 	defer func() {
+		switch runtime.GOOS {
+		case "linux":
 		exec.Command("xdg-open", "challenge.html").Run()
+	case "darwin":
+		exec.Command("open", "challenge.html").Run()
 	}()
 
 	f, err := fileErr(os.OpenFile("main_test.go", filePerms, 0640))
