@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -116,9 +117,10 @@ func get(challenge string) error {
 	defer func() {
 		switch runtime.GOOS {
 		case "linux":
-		exec.Command("xdg-open", "challenge.html").Run()
-	case "darwin":
-		exec.Command("open", "challenge.html").Run()
+			exec.Command("xdg-open", "challenge.html").Run()
+		case "darwin":
+			exec.Command("open", "challenge.html").Run()
+		}
 	}()
 
 	f, err := fileErr(os.OpenFile("main_test.go", filePerms, 0640))
